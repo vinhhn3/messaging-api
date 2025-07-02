@@ -198,3 +198,157 @@ describe("Message API - General Endpoints", () => {
     });
   });
 });
+
+describe("Message Controller Error Handling", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("should return 500 if database transaction fails", async () => {
+    jest.spyOn(db.sequelize, "transaction").mockImplementationOnce(() => {
+      throw new Error("Transaction failed");
+    });
+
+    const res = await request(server)
+      .post("/messages")
+      .send({
+        senderId: testUserA.id,
+        recipientIds: [testUserB.id],
+        subject: "DB Error Test",
+        content: "This should fail.",
+      });
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during message sending."
+    );
+  });
+
+  test("should return 500 if creating a message fails", async () => {
+    jest.spyOn(Message, "create").mockImplementationOnce(() => {
+      throw new Error("Message creation failed");
+    });
+
+    const res = await request(server)
+      .post("/messages")
+      .send({
+        senderId: testUserA.id,
+        recipientIds: [testUserB.id],
+        subject: "DB Error Test",
+        content: "This should fail.",
+      });
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during message sending."
+    );
+  });
+
+  test("should return 500 if bulk creating message recipients fails", async () => {
+    jest.spyOn(MessageRecipient, "bulkCreate").mockImplementationOnce(() => {
+      throw new Error("Bulk create failed");
+    });
+
+    const res = await request(server)
+      .post("/messages")
+      .send({
+        senderId: testUserA.id,
+        recipientIds: [testUserB.id],
+        subject: "DB Error Test",
+        content: "This should fail.",
+      });
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during message sending."
+    );
+  });
+
+  test("should return 500 if finding a message by pk fails", async () => {
+    jest.spyOn(Message, "findByPk").mockImplementationOnce(() => {
+      throw new Error("FindByPk failed");
+    });
+
+    const res = await request(server).get(`/messages/${createdMessageId}`);
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during message retrieval."
+    );
+  });
+
+  test("should return 500 if finding a message recipient by pk fails", async () => {
+    jest
+      .spyOn(MessageRecipient, "findByPk")
+      .mockImplementationOnce(() => {
+        throw new Error("FindByPk failed");
+      });
+
+    const res = await request(server).patch(
+      "/messages/message-recipients/1/mark-read"
+    );
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during marking message as read."
+    );
+  });
+
+  test("should return 500 if saving a message recipient fails", async () => {
+    const mockMessageRecipient = {
+      id: 1,
+      read: false,
+      save: jest.fn().mockImplementationOnce(() => {
+        throw new Error("Save failed");
+      }),
+    };
+    jest
+      .spyOn(MessageRecipient, "findByPk")
+      .mockResolvedValue(mockMessageRecipient);
+
+    const res = await request(server).patch(
+      "/messages/message-recipients/1/mark-read"
+    );
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during marking message as read."
+    );
+  });
+
+  test("should return 200 if message is already marked as read", async () => {
+    const mockMessageRecipient = {
+      id: 1,
+      read: true,
+    };
+    jest
+      .spyOn(MessageRecipient, "findByPk")
+      .mockResolvedValue(mockMessageRecipient);
+
+    const res = await request(server).patch(
+      "/messages/message-recipients/1/mark-read"
+    );
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("message", "Message already marked as read.");
+  });
+
+  test("should return 404 if message recipient not found", async () => {
+    const nonExistentId = "e0e0e0e0-e0e0-4e0e-e0e0-e0e0e0e0e0e0";
+    const res = await request(server).patch(
+      `/messages/message-recipients/${nonExistentId}/mark-read`
+    );
+
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Message recipient entry not found."
+    );
+  });
+});

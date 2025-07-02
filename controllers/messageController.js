@@ -13,8 +13,9 @@ const { Op } = require("sequelize"); // Import Op for complex queries
  * @body {string} content - Content of the message
  */
 exports.sendMessage = async (req, res) => {
-  const transaction = await sequelize.transaction(); // Start a transaction for atomicity
+  let transaction;
   try {
+    transaction = await sequelize.transaction(); // Start a transaction for atomicity
     const { senderId, recipientIds, subject, content } = req.body;
 
     // Basic input validation
@@ -103,7 +104,9 @@ exports.sendMessage = async (req, res) => {
       },
     });
   } catch (error) {
-    await transaction.rollback(); // Rollback on error
+    if (transaction) {
+      await transaction.rollback(); // Rollback on error
+    }
     console.error("Error sending message:", error);
     res
       .status(500)
