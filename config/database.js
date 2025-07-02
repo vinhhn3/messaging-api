@@ -2,6 +2,8 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config(); // Load environment variables from .env file
 
+// For Testing purposes only
+
 const env = process.env.NODE_ENV || "development"; // Default to 'development'
 
 let sequelize;
