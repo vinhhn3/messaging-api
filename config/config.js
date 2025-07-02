@@ -4,6 +4,8 @@ require("dotenv").config(); // Ensure environment variables are loaded
 // Import the configured sequelize instance to extract its options
 const sequelize = require("./database");
 
+// Test more
+
 module.exports = {
   development: {
     dialect: sequelize.options.dialect,
