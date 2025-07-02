@@ -1,9 +1,9 @@
 // models/MessageRecipient.js
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const MessageRecipient = sequelize.define(
-    "MessageRecipient",
+    'MessageRecipient',
     {
       id: {
         type: DataTypes.UUID,
@@ -13,12 +13,12 @@ module.exports = (sequelize) => {
       messageId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "message_id",
+        field: 'message_id',
       },
       recipientId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "recipient_id",
+        field: 'recipient_id',
       },
       read: {
         type: DataTypes.BOOLEAN,
@@ -28,11 +28,11 @@ module.exports = (sequelize) => {
       readAt: {
         type: DataTypes.DATE,
         allowNull: true,
-        field: "read_at",
+        field: 'read_at',
       },
     },
     {
-      tableName: "message_recipients",
+      tableName: 'message_recipients',
       timestamps: false,
     }
   );

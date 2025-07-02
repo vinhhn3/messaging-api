@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     // Create users table
-    await queryInterface.createTable("users", {
+    await queryInterface.createTable('users', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -21,12 +21,12 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
 
     // Create messages table
-    await queryInterface.createTable("messages", {
+    await queryInterface.createTable('messages', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -37,11 +37,11 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users", // References the users table
-          key: "id",
+          model: 'users', // References the users table
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       subject: {
         type: Sequelize.STRING,
@@ -54,12 +54,12 @@ module.exports = {
       timestamp: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
 
     // Create message_recipients table
-    await queryInterface.createTable("message_recipients", {
+    await queryInterface.createTable('message_recipients', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -70,22 +70,22 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "messages", // References the messages table
-          key: "id",
+          model: 'messages', // References the messages table
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       recipient_id: {
         // Matches the field name in the database
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users", // References the users table
-          key: "id",
+          model: 'users', // References the users table
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       read: {
         type: Sequelize.BOOLEAN,
@@ -101,8 +101,8 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     // Drop tables in reverse order of creation to handle foreign key constraints
-    await queryInterface.dropTable("message_recipients");
-    await queryInterface.dropTable("messages");
-    await queryInterface.dropTable("users");
+    await queryInterface.dropTable('message_recipients');
+    await queryInterface.dropTable('messages');
+    await queryInterface.dropTable('users');
   },
 };

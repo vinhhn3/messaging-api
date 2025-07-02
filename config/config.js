@@ -1,8 +1,8 @@
 // config/config.js
-require("dotenv").config(); // Ensure environment variables are loaded
+require('dotenv').config(); // Ensure environment variables are loaded
 
 // Import the configured sequelize instance to extract its options
-const sequelize = require("./database");
+const sequelize = require('./database');
 
 // Test more
 

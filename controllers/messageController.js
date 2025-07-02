@@ -1,7 +1,7 @@
 // controllers/messageController.js
-const db = require("../models"); // Import the database connection and models
+const db = require('../models'); // Import the database connection and models
 const { User, Message, MessageRecipient, sequelize } = db; // Destructure necessary models and sequelize instance
-const { Op } = require("sequelize"); // Import Op for complex queries
+const { Op } = require('sequelize'); // Import Op for complex queries
 
 /**
  * @desc Send a message to one or more recipients
@@ -29,7 +29,7 @@ exports.sendMessage = async (req, res) => {
       await transaction.rollback();
       return res.status(400).json({
         error:
-          "Sender ID, at least one recipient ID, and content are required.",
+          'Sender ID, at least one recipient ID, and content are required.',
       });
     }
 
@@ -37,7 +37,7 @@ exports.sendMessage = async (req, res) => {
     const sender = await User.findByPk(senderId, { transaction });
     if (!sender) {
       await transaction.rollback();
-      return res.status(404).json({ error: "Sender not found." });
+      return res.status(404).json({ error: 'Sender not found.' });
     }
 
     // Filter out duplicate recipient IDs and ensure sender is not a recipient
@@ -49,7 +49,7 @@ exports.sendMessage = async (req, res) => {
       await transaction.rollback();
       return res.status(400).json({
         error:
-          "No valid recipients provided. Recipients cannot be the sender, and duplicates are removed.",
+          'No valid recipients provided. Recipients cannot be the sender, and duplicates are removed.',
       });
     }
 
@@ -66,7 +66,7 @@ exports.sendMessage = async (req, res) => {
     if (recipients.length !== uniqueRecipientIds.length) {
       await transaction.rollback();
       return res.status(404).json({
-        error: "One or more recipient IDs are invalid or do not exist.",
+        error: 'One or more recipient IDs are invalid or do not exist.',
       });
     }
 
@@ -93,7 +93,7 @@ exports.sendMessage = async (req, res) => {
     await transaction.commit(); // Commit the transaction
 
     res.status(201).json({
-      message: "Message sent successfully",
+      message: 'Message sent successfully',
       sentMessage: {
         id: message.id,
         senderId: message.senderId,
@@ -107,10 +107,10 @@ exports.sendMessage = async (req, res) => {
     if (transaction) {
       await transaction.rollback(); // Rollback on error
     }
-    console.error("Error sending message:", error);
+    console.error('Error sending message:', error);
     res
       .status(500)
-      .json({ error: "Internal server error during message sending." });
+      .json({ error: 'Internal server error during message sending.' });
   }
 };
 
@@ -130,24 +130,24 @@ exports.getMessageWithRecipients = async (req, res) => {
       include: [
         {
           model: User,
-          as: "sender", // Alias defined in models/index.js for sender association
-          attributes: ["id", "name", "email"], // Select specific attributes for sender
+          as: 'sender', // Alias defined in models/index.js for sender association
+          attributes: ['id', 'name', 'email'], // Select specific attributes for sender
         },
         {
           model: MessageRecipient,
-          as: "recipients", // Alias defined in models/index.js for recipients association
-          attributes: ["id", "recipientId", "read", "readAt"], // Select specific attributes for recipient status
+          as: 'recipients', // Alias defined in models/index.js for recipients association
+          attributes: ['id', 'recipientId', 'read', 'readAt'], // Select specific attributes for recipient status
           include: {
             model: User,
-            as: "recipient", // Alias for the actual recipient user
-            attributes: ["id", "name", "email"], // Select specific attributes for recipient user
+            as: 'recipient', // Alias for the actual recipient user
+            attributes: ['id', 'name', 'email'], // Select specific attributes for recipient user
           },
         },
       ],
     });
 
     if (!message) {
-      return res.status(404).json({ error: "Message not found." });
+      return res.status(404).json({ error: 'Message not found.' });
     }
 
     res.status(200).json({ message });
@@ -158,7 +158,7 @@ exports.getMessageWithRecipients = async (req, res) => {
     ); // More specific error logging
     res
       .status(500)
-      .json({ error: "Internal server error during message retrieval." });
+      .json({ error: 'Internal server error during message retrieval.' });
   }
 };
 
@@ -177,13 +177,13 @@ exports.markMessageAsRead = async (req, res) => {
     if (!messageRecipient) {
       return res
         .status(404)
-        .json({ error: "Message recipient entry not found." });
+        .json({ error: 'Message recipient entry not found.' });
     }
 
     if (messageRecipient.read) {
       return res
         .status(200)
-        .json({ message: "Message already marked as read." });
+        .json({ message: 'Message already marked as read.' });
     }
 
     messageRecipient.read = true;
@@ -191,7 +191,7 @@ exports.markMessageAsRead = async (req, res) => {
     await messageRecipient.save();
 
     res.status(200).json({
-      message: "Message marked as read successfully.",
+      message: 'Message marked as read successfully.',
       messageRecipient: {
         id: messageRecipient.id,
         messageId: messageRecipient.messageId,
@@ -207,6 +207,6 @@ exports.markMessageAsRead = async (req, res) => {
     ); // More specific error logging
     res
       .status(500)
-      .json({ error: "Internal server error during marking message as read." });
+      .json({ error: 'Internal server error during marking message as read.' });
   }
 };

@@ -1,9 +1,9 @@
 // models/User.js
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const User = sequelize.define(
-    "User",
+    'User',
     {
       id: {
         type: DataTypes.UUID,
@@ -24,7 +24,6 @@ module.exports = (sequelize) => {
       },
     },
     {
-      tableName: "users",
       timestamps: true,
       updatedAt: false,
     }

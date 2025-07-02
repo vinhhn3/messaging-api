@@ -1,11 +1,11 @@
 // tests/messages.test.js
-const request = require("supertest"); // Used for making HTTP requests to the Express app
-const app = require("../app"); // Import your Express app
-const db = require("../models"); // Import your database models
+const request = require('supertest'); // Used for making HTTP requests to the Express app
+const app = require('../app'); // Import your Express app
+const db = require('../models'); // Import your database models
 const { User, Message, MessageRecipient } = db; // Destructure necessary models
 
 // Use a separate in-memory SQLite database for testing
-process.env.NODE_ENV = "test";
+process.env.NODE_ENV = 'test';
 
 let server; // To hold the server instance
 let testUserA, testUserB, testUserC; // To hold test user data for message tests
@@ -17,23 +17,23 @@ beforeAll(async () => {
 
   // Start the server on a different port for testing (e.g., 8003)
   server = app.listen(8003, () => {
-    console.log("Test server for messages running on port 8003");
+    console.log('Test server for messages running on port 8003');
   });
 
   // Create test users for message sending/retrieval
   const userARes = await request(server)
-    .post("/users")
-    .send({ email: "user.a@example.com", name: "User A" });
+    .post('/users')
+    .send({ email: 'user.a@example.com', name: 'User A' });
   testUserA = userARes.body.user;
 
   const userBRes = await request(server)
-    .post("/users")
-    .send({ email: "user.b@example.com", name: "User B" });
+    .post('/users')
+    .send({ email: 'user.b@example.com', name: 'User B' });
   testUserB = userBRes.body.user;
 
   const userCRes = await request(server)
-    .post("/users")
-    .send({ email: "user.c@example.com", name: "User C" });
+    .post('/users')
+    .send({ email: 'user.c@example.com', name: 'User C' });
   testUserC = userCRes.body.user;
 });
 
@@ -44,44 +44,44 @@ afterAll(async () => {
   await db.sequelize.close();
 });
 
-describe("Message API - General Endpoints", () => {
+describe('Message API - General Endpoints', () => {
   // Test for POST /messages
-  describe("POST /messages", () => {
-    test("should send a message to a single recipient successfully", async () => {
+  describe('POST /messages', () => {
+    test('should send a message to a single recipient successfully', async () => {
       const res = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({
           senderId: testUserA.id,
           recipientIds: [testUserB.id],
-          subject: "Single Recipient Test",
-          content: "This is a message to a single person.",
+          subject: 'Single Recipient Test',
+          content: 'This is a message to a single person.',
         });
 
       expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty("message", "Message sent successfully");
-      expect(res.body.sentMessage).toHaveProperty("id");
+      expect(res.body).toHaveProperty('message', 'Message sent successfully');
+      expect(res.body.sentMessage).toHaveProperty('id');
       expect(res.body.sentMessage.senderId).toEqual(testUserA.id);
       expect(res.body.sentMessage.recipients).toEqual([testUserB.id]);
-      expect(res.body.sentMessage.subject).toEqual("Single Recipient Test");
+      expect(res.body.sentMessage.subject).toEqual('Single Recipient Test');
       expect(res.body.sentMessage.content).toEqual(
-        "This is a message to a single person."
+        'This is a message to a single person.'
       );
       createdMessageId = res.body.sentMessage.id; // Store for GET test
     });
 
-    test("should send a message to multiple recipients successfully", async () => {
+    test('should send a message to multiple recipients successfully', async () => {
       const res = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({
           senderId: testUserA.id,
           recipientIds: [testUserB.id, testUserC.id],
-          subject: "Multi-Recipient Test",
-          content: "This is a message to multiple people.",
+          subject: 'Multi-Recipient Test',
+          content: 'This is a message to multiple people.',
         });
 
       expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty("message", "Message sent successfully");
-      expect(res.body.sentMessage).toHaveProperty("id");
+      expect(res.body).toHaveProperty('message', 'Message sent successfully');
+      expect(res.body.sentMessage).toHaveProperty('id');
       expect(res.body.sentMessage.senderId).toEqual(testUserA.id);
       expect(res.body.sentMessage.recipients).toEqual(
         expect.arrayContaining([testUserB.id, testUserC.id])
@@ -89,98 +89,98 @@ describe("Message API - General Endpoints", () => {
       expect(res.body.sentMessage.recipients).toHaveLength(2);
     });
 
-    test("should return 400 if senderId, recipientIds, or content is missing", async () => {
+    test('should return 400 if senderId, recipientIds, or content is missing', async () => {
       const res1 = await request(server)
-        .post("/messages")
-        .send({ recipientIds: [testUserB.id], content: "Missing sender" });
+        .post('/messages')
+        .send({ recipientIds: [testUserB.id], content: 'Missing sender' });
       expect(res1.statusCode).toEqual(400);
       expect(res1.body).toHaveProperty(
-        "error",
-        "Sender ID, at least one recipient ID, and content are required."
+        'error',
+        'Sender ID, at least one recipient ID, and content are required.'
       );
 
       const res2 = await request(server)
-        .post("/messages")
-        .send({ senderId: testUserA.id, content: "Missing recipients" });
+        .post('/messages')
+        .send({ senderId: testUserA.id, content: 'Missing recipients' });
       expect(res2.statusCode).toEqual(400);
       expect(res2.body).toHaveProperty(
-        "error",
-        "Sender ID, at least one recipient ID, and content are required."
+        'error',
+        'Sender ID, at least one recipient ID, and content are required.'
       );
 
       const res3 = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({ senderId: testUserA.id, recipientIds: [testUserB.id] });
       expect(res3.statusCode).toEqual(400);
       expect(res3.body).toHaveProperty(
-        "error",
-        "Sender ID, at least one recipient ID, and content are required."
+        'error',
+        'Sender ID, at least one recipient ID, and content are required.'
       );
     });
 
-    test("should return 404 if sender not found", async () => {
-      const nonExistentId = "b0b0b0b0-b0b0-4b0b-b0b0-b0b0b0b0b0b0";
+    test('should return 404 if sender not found', async () => {
+      const nonExistentId = 'b0b0b0b0-b0b0-4b0b-b0b0-b0b0b0b0b0b0';
       const res = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({
           senderId: nonExistentId,
           recipientIds: [testUserB.id],
-          subject: "Invalid Sender",
-          content: "This message has an invalid sender.",
+          subject: 'Invalid Sender',
+          content: 'This message has an invalid sender.',
         });
       expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty("error", "Sender not found.");
+      expect(res.body).toHaveProperty('error', 'Sender not found.');
     });
 
-    test("should return 404 if one or more recipients not found", async () => {
-      const nonExistentId = "c0c0c0c0-c0c0-4c0c-c0c0-c0c0c0c0c0c0";
+    test('should return 404 if one or more recipients not found', async () => {
+      const nonExistentId = 'c0c0c0c0-c0c0-4c0c-c0c0-c0c0c0c0c0c0';
       const res = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({
           senderId: testUserA.id,
           recipientIds: [testUserB.id, nonExistentId],
-          subject: "Invalid Recipient",
-          content: "This message has an invalid recipient.",
+          subject: 'Invalid Recipient',
+          content: 'This message has an invalid recipient.',
         });
       expect(res.statusCode).toEqual(404);
       expect(res.body).toHaveProperty(
-        "error",
-        "One or more recipient IDs are invalid or do not exist."
+        'error',
+        'One or more recipient IDs are invalid or do not exist.'
       );
     });
 
-    test("should return 400 if no valid recipients after filtering sender and duplicates", async () => {
+    test('should return 400 if no valid recipients after filtering sender and duplicates', async () => {
       const res = await request(server)
-        .post("/messages")
+        .post('/messages')
         .send({
           senderId: testUserA.id,
           recipientIds: [testUserA.id, testUserA.id], // Sender is also a recipient, and duplicates
-          subject: "Invalid Recipient List",
-          content: "This message has no valid recipients after filtering.",
+          subject: 'Invalid Recipient List',
+          content: 'This message has no valid recipients after filtering.',
         });
       expect(res.statusCode).toEqual(400);
       expect(res.body).toHaveProperty(
-        "error",
-        "No valid recipients provided. Recipients cannot be the sender, and duplicates are removed."
+        'error',
+        'No valid recipients provided. Recipients cannot be the sender, and duplicates are removed.'
       );
     });
   });
 
   // Test for GET /messages/:id
-  describe("GET /messages/:id", () => {
-    test("should retrieve a specific message with all its recipients", async () => {
+  describe('GET /messages/:id', () => {
+    test('should retrieve a specific message with all its recipients', async () => {
       // Ensure a message was created in the POST tests
       expect(createdMessageId).toBeDefined();
 
       const res = await request(server).get(`/messages/${createdMessageId}`);
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty("message");
+      expect(res.body).toHaveProperty('message');
       expect(res.body.message.id).toEqual(createdMessageId);
       expect(res.body.message.sender.id).toEqual(testUserA.id);
-      expect(res.body.message.subject).toEqual("Single Recipient Test");
+      expect(res.body.message.subject).toEqual('Single Recipient Test');
       expect(res.body.message.content).toEqual(
-        "This is a message to a single person."
+        'This is a message to a single person.'
       );
 
       // Check recipients
@@ -189,166 +189,167 @@ describe("Message API - General Endpoints", () => {
       expect(res.body.message.recipients[0].read).toBe(false); // Should be unread initially
     });
 
-    test("should return 404 if message not found", async () => {
-      const nonExistentId = "d0d0d0d0-d0d0-4d0d-d0d0-d0d0d0d0d0d0"; // A valid UUID format, but non-existent
+    test('should return 404 if message not found', async () => {
+      const nonExistentId = 'd0d0d0d0-d0d0-4d0d-d0d0-d0d0d0d0d0d0'; // A valid UUID format, but non-existent
       const res = await request(server).get(`/messages/${nonExistentId}`);
 
       expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty("error", "Message not found.");
+      expect(res.body).toHaveProperty('error', 'Message not found.');
     });
   });
 });
 
-describe("Message Controller Error Handling", () => {
+describe('Message Controller Error Handling', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  test("should return 500 if database transaction fails", async () => {
-    jest.spyOn(db.sequelize, "transaction").mockImplementationOnce(() => {
-      throw new Error("Transaction failed");
+  test('should return 500 if database transaction fails', async () => {
+    jest.spyOn(db.sequelize, 'transaction').mockImplementationOnce(() => {
+      throw new Error('Transaction failed');
     });
 
     const res = await request(server)
-      .post("/messages")
+      .post('/messages')
       .send({
         senderId: testUserA.id,
         recipientIds: [testUserB.id],
-        subject: "DB Error Test",
-        content: "This should fail.",
+        subject: 'DB Error Test',
+        content: 'This should fail.',
       });
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during message sending."
+      'error',
+      'Internal server error during message sending.'
     );
   });
 
-  test("should return 500 if creating a message fails", async () => {
-    jest.spyOn(Message, "create").mockImplementationOnce(() => {
-      throw new Error("Message creation failed");
+  test('should return 500 if creating a message fails', async () => {
+    jest.spyOn(Message, 'create').mockImplementationOnce(() => {
+      throw new Error('Message creation failed');
     });
 
     const res = await request(server)
-      .post("/messages")
+      .post('/messages')
       .send({
         senderId: testUserA.id,
         recipientIds: [testUserB.id],
-        subject: "DB Error Test",
-        content: "This should fail.",
+        subject: 'DB Error Test',
+        content: 'This should fail.',
       });
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during message sending."
+      'error',
+      'Internal server error during message sending.'
     );
   });
 
-  test("should return 500 if bulk creating message recipients fails", async () => {
-    jest.spyOn(MessageRecipient, "bulkCreate").mockImplementationOnce(() => {
-      throw new Error("Bulk create failed");
+  test('should return 500 if bulk creating message recipients fails', async () => {
+    jest.spyOn(MessageRecipient, 'bulkCreate').mockImplementationOnce(() => {
+      throw new Error('Bulk create failed');
     });
 
     const res = await request(server)
-      .post("/messages")
+      .post('/messages')
       .send({
         senderId: testUserA.id,
         recipientIds: [testUserB.id],
-        subject: "DB Error Test",
-        content: "This should fail.",
+        subject: 'DB Error Test',
+        content: 'This should fail.',
       });
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during message sending."
+      'error',
+      'Internal server error during message sending.'
     );
   });
 
-  test("should return 500 if finding a message by pk fails", async () => {
-    jest.spyOn(Message, "findByPk").mockImplementationOnce(() => {
-      throw new Error("FindByPk failed");
+  test('should return 500 if finding a message by pk fails', async () => {
+    jest.spyOn(Message, 'findByPk').mockImplementationOnce(() => {
+      throw new Error('FindByPk failed');
     });
 
     const res = await request(server).get(`/messages/${createdMessageId}`);
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during message retrieval."
+      'error',
+      'Internal server error during message retrieval.'
     );
   });
 
-  test("should return 500 if finding a message recipient by pk fails", async () => {
-    jest
-      .spyOn(MessageRecipient, "findByPk")
-      .mockImplementationOnce(() => {
-        throw new Error("FindByPk failed");
-      });
+  test('should return 500 if finding a message recipient by pk fails', async () => {
+    jest.spyOn(MessageRecipient, 'findByPk').mockImplementationOnce(() => {
+      throw new Error('FindByPk failed');
+    });
 
     const res = await request(server).patch(
-      "/messages/message-recipients/1/mark-read"
+      '/messages/message-recipients/1/mark-read'
     );
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during marking message as read."
+      'error',
+      'Internal server error during marking message as read.'
     );
   });
 
-  test("should return 500 if saving a message recipient fails", async () => {
+  test('should return 500 if saving a message recipient fails', async () => {
     const mockMessageRecipient = {
       id: 1,
       read: false,
       save: jest.fn().mockImplementationOnce(() => {
-        throw new Error("Save failed");
+        throw new Error('Save failed');
       }),
     };
     jest
-      .spyOn(MessageRecipient, "findByPk")
+      .spyOn(MessageRecipient, 'findByPk')
       .mockResolvedValue(mockMessageRecipient);
 
     const res = await request(server).patch(
-      "/messages/message-recipients/1/mark-read"
+      '/messages/message-recipients/1/mark-read'
     );
 
     expect(res.statusCode).toEqual(500);
     expect(res.body).toHaveProperty(
-      "error",
-      "Internal server error during marking message as read."
+      'error',
+      'Internal server error during marking message as read.'
     );
   });
 
-  test("should return 200 if message is already marked as read", async () => {
+  test('should return 200 if message is already marked as read', async () => {
     const mockMessageRecipient = {
       id: 1,
       read: true,
     };
     jest
-      .spyOn(MessageRecipient, "findByPk")
+      .spyOn(MessageRecipient, 'findByPk')
       .mockResolvedValue(mockMessageRecipient);
 
     const res = await request(server).patch(
-      "/messages/message-recipients/1/mark-read"
+      '/messages/message-recipients/1/mark-read'
     );
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "Message already marked as read.");
+    expect(res.body).toHaveProperty(
+      'message',
+      'Message already marked as read.'
+    );
   });
 
-  test("should return 404 if message recipient not found", async () => {
-    const nonExistentId = "e0e0e0e0-e0e0-4e0e-e0e0-e0e0e0e0e0e0";
+  test('should return 404 if message recipient not found', async () => {
+    const nonExistentId = 'e0e0e0e0-e0e0-4e0e-e0e0-e0e0e0e0e0e0';
     const res = await request(server).patch(
       `/messages/message-recipients/${nonExistentId}/mark-read`
     );
 
     expect(res.statusCode).toEqual(404);
     expect(res.body).toHaveProperty(
-      "error",
-      "Message recipient entry not found."
+      'error',
+      'Message recipient entry not found.'
     );
   });
 });

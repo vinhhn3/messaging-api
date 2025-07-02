@@ -1,9 +1,9 @@
 // models/Message.js
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const Message = sequelize.define(
-    "Message",
+    'Message',
     {
       id: {
         type: DataTypes.UUID,
@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
       senderId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "sender_id",
+        field: 'sender_id',
       },
       subject: {
         type: DataTypes.STRING,
@@ -30,7 +30,7 @@ module.exports = (sequelize) => {
       },
     },
     {
-      tableName: "messages",
+      tableName: 'messages',
       timestamps: false,
     }
   );
