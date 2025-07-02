@@ -322,3 +322,103 @@ describe("API Endpoints Comprehensive Tests", () => {
     });
   });
 });
+
+describe("User Controller Error Handling", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test("should return 500 if creating a user fails", async () => {
+    jest.spyOn(User, "create").mockImplementationOnce(() => {
+      throw new Error("User creation failed");
+    });
+
+    const res = await request(server)
+      .post("/users")
+      .send({ email: "fail@example.com", name: "Fail" });
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during user creation."
+    );
+  });
+
+  test("should return 500 if finding a user by pk fails", async () => {
+    jest.spyOn(User, "findByPk").mockImplementationOnce(() => {
+      throw new Error("FindByPk failed");
+    });
+
+    const res = await request(server).get(`/users/${testUser1.id}`);
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during user retrieval."
+    );
+  });
+
+  test("should return 500 if finding all users fails", async () => {
+    jest.spyOn(User, "findAll").mockImplementationOnce(() => {
+      throw new Error("FindAll failed");
+    });
+
+    const res = await request(server).get("/users");
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during user listing."
+    );
+  });
+
+  test("should return 500 if finding sent messages fails", async () => {
+    jest.spyOn(Message, "findAll").mockImplementationOnce(() => {
+      throw new Error("FindAll failed");
+    });
+
+    const res = await request(server).get(
+      `/users/${testUser1.id}/sent-messages`
+    );
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during sent messages retrieval."
+    );
+  });
+
+  test("should return 500 if finding inbox messages fails", async () => {
+    jest.spyOn(MessageRecipient, "findAll").mockImplementationOnce(() => {
+      throw new Error("FindAll failed");
+    });
+
+    const res = await request(server).get(
+      `/users/${testUser2.id}/inbox-messages`
+    );
+
+    expect(res.statusCode).toEqual(500);
+    expect(res.body).toHaveProperty(
+      "error",
+      "Internal server error during inbox messages retrieval."
+    );
+  });
+
+  test("should return 404 if user not found for sent messages", async () => {
+    const nonExistentId = "a0a0a0a0-a0a0-4a0a-a0a0-a0a0a0a0a0a0";
+    const res = await request(server).get(
+      `/users/${nonExistentId}/sent-messages`
+    );
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toHaveProperty("error", "User not found.");
+  });
+
+  test("should return 404 if user not found for inbox messages", async () => {
+    const nonExistentId = "a0a0a0a0-a0a0-4a0a-a0a0-a0a0a0a0a0a0";
+    const res = await request(server).get(
+      `/users/${nonExistentId}/inbox-messages`
+    );
+    expect(res.statusCode).toEqual(404);
+    expect(res.body).toHaveProperty("error", "User not found.");
+  });
+});
