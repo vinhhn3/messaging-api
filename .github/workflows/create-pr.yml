@@ -26,7 +26,7 @@ jobs:
         run: |
           gh pr create \
             --base main \
-            --head ${{ github.ref_name }} \
+            --head "${{ github.ref_name }}" \
             --title "feat: ${{ github.ref_name }}" \
-            --body "Auto-generated PR for branch `${{ github.ref_name }}`" \
-            || echo "PR already exists or failed to create"
+            --body "Auto-generated PR for branch \`${{ github.ref_name }}\`" \
+          || echo "PR already exists or failed to create"
