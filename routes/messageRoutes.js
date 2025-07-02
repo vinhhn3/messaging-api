@@ -6,5 +6,8 @@ const messageController = require("../controllers/messageController"); // Import
 // Message API routes
 router.post("/", messageController.sendMessage); // POST /messages - Send a message
 router.get("/:id", messageController.getMessageWithRecipients);
-router.patch("/:id/mark-read", messageController.markMessageAsRead);
+router.patch(
+  "/message-recipients/:id/mark-read",
+  messageController.markMessageAsRead
+);
 module.exports = router;

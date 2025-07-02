@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  # Your Express.js application container
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000
+    environment:
+      # DATABASE_URL for the app to connect to the PostgreSQL container
+      # 'db' is the service name of the PostgreSQL container, acting as its hostname
+      DATABASE_URL: postgresql://user:password@db:5432/messaging_db
+      NODE_ENV: production # Set Node.js environment to production inside the container
+      PORT: 8000 # Explicitly set the port for the app
+    depends_on:
+      db:
+        condition: service_healthy # NEW: Wait until the 'db' service reports as healthy
+    # Optional: For development, you might mount volumes to enable hot-reloading
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules # Exclude node_modules from host mount to prevent issues
+
+  # PostgreSQL database container
+  db:
+    image: postgres:13-alpine # Use a lightweight PostgreSQL image
+    environment:
+      POSTGRES_DB: messaging_db # Default database name
+      POSTGRES_USER: user # Default user
+      POSTGRES_PASSWORD: password # Default password
+    ports:
+      - "5432:5432" # Expose PostgreSQL port to the host
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persistent data volume for PostgreSQL
+    healthcheck: # NEW: Define a healthcheck for the PostgreSQL container
+      test: ["CMD-SHELL", "pg_isready -U user -d messaging_db"] # Command to check DB readiness
+      interval: 5s # Check every 5 seconds
+      timeout: 5s # Timeout after 5 seconds
+      retries: 5 # Retry 5 times before marking as unhealthy
+      start_period: 10s # Give the DB 10 seconds to start before starting checks
+
+volumes:
+  db_data: # Define the named volume for persistent database data

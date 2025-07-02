@@ -49,3 +49,5 @@ db.sequelize
   .catch((err) => {
     console.error("Unable to connect to the database or sync models:", err);
   });
+
+module.exports = app; // Export the app for testing purposes
