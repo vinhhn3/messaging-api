@@ -4,6 +4,9 @@ const dotenv = require('dotenv');
 const db = require('./models'); // Import your database connection and models
 const userRoutes = require('./routes/userRoutes'); // Import user routes
 const messageRoutes = require('./routes/messageRoutes'); // Import message routes
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./docs/swagger.yaml');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -22,6 +25,9 @@ app.get('/', (req, res) => {
 // Use user routes
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
+
+// Serve Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Error handling middleware (optional, but good practice)
 app.use((err, req, res, next) => {

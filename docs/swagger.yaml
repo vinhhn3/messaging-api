@@ -1,0 +1,207 @@
+openapi: 3.0.0
+info:
+  title: Messaging System API
+  version: 1.0.0
+  description: API for a simple messaging system
+servers:
+  - url: http://localhost:8000
+    description: Local Development Server
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                name:
+                  type: string
+                  description: User's full name
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                      name:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Invalid input
+        '409':
+          description: User with this email already exists
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        email:
+                          type: string
+                        name:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the user to retrieve
+      responses:
+        '200':
+          description: User data
+        '404':
+          description: User not found
+  /users/{id}/sent-messages:
+    get:
+      summary: Get sent messages for a user
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the sender user
+      responses:
+        '200':
+          description: List of sent messages
+        '404':
+          description: User not found
+  /users/{id}/inbox-messages:
+    get:
+      summary: Get inbox messages for a user
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the recipient user
+        - in: query
+          name: read
+          schema:
+            type: boolean
+          required: false
+          description: Filter messages by read status (true/false)
+      responses:
+        '200':
+          description: List of inbox messages
+        '404':
+          description: User not found
+  /messages:
+    post:
+      summary: Send a new message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - senderId
+                - recipientIds
+                - subject
+                - content
+              properties:
+                senderId:
+                  type: string
+                  format: uuid
+                  description: ID of the sender user
+                recipientIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Array of recipient user IDs
+                subject:
+                  type: string
+                  description: Subject of the message
+                content:
+                  type: string
+                  description: Content of the message
+      responses:
+        '201':
+          description: Message sent successfully
+        '400':
+          description: Invalid input
+        '404':
+          description: Sender or recipient not found
+  /messages/{id}:
+    get:
+      summary: Get message by ID with recipients
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the message to retrieve
+      responses:
+        '200':
+          description: Message data with recipients
+        '404':
+          description: Message not found
+  /messages/message-recipients/{id}/mark-read:
+    patch:
+      summary: Mark a message recipient as read
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: ID of the message recipient entry to mark as read
+      responses:
+        '200':
+          description: Message marked as read successfully
+        '404':
+          description: Message recipient not found
+        '400':
+          description: Message already read
