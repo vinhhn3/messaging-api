@@ -1,6 +1,6 @@
 // controllers/userController.js
 const db = require("../models"); // Import the database connection and models
-const { User, Message, MessageRecipient } = db; // Destructure the User model
+const { User, Message, MessageRecipient }  db; // Destructure the User model
 
 /**
  * @desc Create a new user
@@ -203,11 +203,7 @@ exports.getInboxMessages = async (req, res) => {
       order: [
         ["read", "ASC"],
         ["readAt", "DESC"],
-        [
-          { model: Message, as: "message" },
-          "timestamp",
-          "DESC",
-        ],
+        [{ model: Message, as: "message" }, "timestamp", "DESC"],
       ],
     });
 
