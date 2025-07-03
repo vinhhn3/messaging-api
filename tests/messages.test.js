@@ -5,7 +5,7 @@ const db = require('../models'); // Import your database models
 const { User, Message, MessageRecipient } = db; // Destructure necessary models
 
 // Use a separate in-memory SQLite database for testing
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV  'test';
 
 // For Testing purpose
 
