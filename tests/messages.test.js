@@ -7,6 +7,8 @@ const { User, Message, MessageRecipient } = db; // Destructure necessary models
 // Use a separate in-memory SQLite database for testing
 process.env.NODE_ENV = 'test';
 
+// For Testing purpose
+
 let server; // To hold the server instance
 let testUserA, testUserB, testUserC; // To hold test user data for message tests
 let createdMessageId; // To store the ID of a message created during tests
